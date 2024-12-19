@@ -86,14 +86,16 @@ def is_valid_direction(head, direction, width, height):
 
 
 # Spiel starten
-def play_snake(framebuffer, display):
+def play_snake(framebuffer, display, iterations=10):
     width, height = 10, 10
     colorSnake = Color.RED.scale(0.02)  # Farbe für die Schlange
     colorBerry = Color.GREEN.scale(0.02)  # Farbe für die Beeren
     #framebuffer = None  # Annahme: Externe Framebuffer-Klasse mit `clear`, `set_pixel` und `display`-Methoden
 
     try:
-        while True:
+        counter = 0
+        while counter < iterations :
+            counter += 1
             snake = Snake(width, height)
             berry = Berry(width, height)
 

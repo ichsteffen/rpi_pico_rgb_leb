@@ -25,8 +25,8 @@ fb = FrameBuffer.FrameBuffer(width=16, height=10, bgcolor=Color.BLACK)
 
 def shifts() :
     fb.fill(Color.BLACK)
-    fb.fill_column(0, Color.GREEN)
-    fb.fill_row(0, Color.RED)
+    fb.fill_column(0, Color.GREEN.scale(16/256))
+    fb.fill_row(0, Color.RED.scale(16/256))
     fb.bgcolor=Color(0x00,0x00,0x03)
 
     fb.render_to_display(display=np)
@@ -34,13 +34,13 @@ def shifts() :
         fb.shift('down', rotate=True)
         fb.shift('right', rotate=True)
         fb.render_to_display(display=np, rotation=0)
-        sleep_ms(500)
+        sleep_ms(50)
 
     for i in range(0,2*fb.width,1):
         fb.shift('up', rotate=True)
         fb.shift('left', rotate=True)
         fb.render_to_display(display=np, rotation=0)
-        sleep_ms(500)
+        sleep_ms(50)
 
 def marry_xmas():
     s = "Marry Xmas"
@@ -54,12 +54,12 @@ def marry_xmas():
         fb.render_to_display(display=np, rotation=0)
         sleep_ms(100)
 
-def rainbow() :
+def rainbow(iterations = 100) :
     s = "... rainbow show ..."
     swidth = len(s)*Font8.Width
     c = Color(0,0,0)
     offset_y = 1
-    for i in range(0,1000,1) :
+    for i in range(0,iterations,1) :
         for y in range(0,10,1):
             for x in range(0,16,1):
                 c.set_from_hsv(-i*5 + y*8 - x*8, 1.0, 16/256)
@@ -78,14 +78,12 @@ def gradients() :
         fb.render_to_display(np,0)
         sleep_ms(2500)
 
-#rainbow()
-
 rtc = ds3231.ds3231(ds3231.I2C_PORT,ds3231.I2C_SCL,ds3231.I2C_SDA)
 def clock(i):
     fb.fill(Color.BLACK)
     h,mi,s,d,m,y = rtc.read_time_()
     s = "%02x:%02x" %(h,mi)
-    fb.print8(s,16 - i%40,1, DARK_GREY)
+    fb.print8(s,16 - i%40,1, DARK_GREY.scale(1/10))
     fb.render_to_display(np,0)
     
 def binaryClock(iterations):
@@ -153,24 +151,25 @@ def play_pacman(framebuffer,display):
         framebuffer.render_to_display(display,0)
         sleep_ms(500)
     
-gradients()
-shifts()
+#gradients()
+#shifts()
         
-binaryClock(120) # 120 sek
+#binaryClock(12) # 120 sek
 
-for i in range(0,400,1):
+for i in range(0,40,1):
     clock(i)
-    sleep_ms(250)
+    sleep_ms(100)
     
-marry_xmas()
-rainbow()
+#marry_xmas()
+#rainbow()
 
-fb.fill(Color.BLACK)
+fb.bgcolor = Color.BLACK
+fb.fill()
 play_pacman(fb,np)
 
 fire.run_fire(200, framebuffer=fb, display=np)
 
-snake.play_snake(framebuffer=fb, display=np)
+snake.play_snake(framebuffer=fb, display=np, iterations=5)
 
 fb.fill(Color.BLACK)
 fb.set_pixel(1,1, Color.WHITE)
@@ -187,7 +186,7 @@ for i in range(0,60*4,1):
     fb90.fill(Color.BLACK)
     h,mi,s,d,m,y = rtc.read_time_()
     s = "%02x:%02x" %(h,mi)
-    fb90.print8(s,16 - i%40,1, DARK_GREY)
+    fb90.print8(s,16 - i%40,1, DARK_GREY.scale(1/8))
     fb90.render_to_display(np, rotation=90)
     sleep_ms(250)
 sleep_ms(10)
