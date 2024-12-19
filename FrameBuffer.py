@@ -187,3 +187,9 @@ class FrameBuffer:
           index = (ord(c)-32)*Font8.Height
           self.draw_pattern(offset_x + i*5, offset_y, Font8.Table[index:index+Font8.Height], Font8.Width, color=color)
 
+    def square(self, offset_x, offset_y, size_x, size_y, color=None) :
+        # print("square ", offset_x, offset_y, size_x, size_y)
+        for y in range(offset_y, offset_y + size_y):
+            for x in range(offset_x, offset_x + size_x):
+                self.buffer[y][x] = color
+                

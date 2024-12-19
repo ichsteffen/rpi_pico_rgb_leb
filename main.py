@@ -2,7 +2,12 @@ import machine, neopixel
 import FrameBuffer
 from time import sleep_ms,sleep
 from Color import Color
+from BinaryClock import BinaryClock
 import Font8
+import ds3231
+from random import random
+import snake
+import fire
 
 #BLACK = (0x00,0x00,0x00)
 #WHITE = (0x1F,0x1F,0x1F)
@@ -16,7 +21,7 @@ fb_star = FrameBuffer.FrameBuffer(3,3,bgcolor=None)
 fb_star.fill_column(1, DARK_GREY)
 fb_star.fill_row(1, DARK_GREY)
 
-fb = FrameBuffer.FrameBuffer(width=16, height=10, bgcolor=bg)
+fb = FrameBuffer.FrameBuffer(width=16, height=10, bgcolor=Color.BLACK)
 
 def shifts() :
     fb.fill(Color.BLACK)
@@ -57,7 +62,7 @@ def rainbow() :
     for i in range(0,1000,1) :
         for y in range(0,10,1):
             for x in range(0,16,1):
-                c.set_from_hsv(i*5 + y*8 - x*8, 1.0, 0.04)
+                c.set_from_hsv(-i*5 + y*8 - x*8, 1.0, 16/256)
                 fb.set_pixel(x,y,c.clone())
         #fb.blit(fb_star,2,2)
         fb.print8( s, 16-(i% (swidth+16)) , offset_y, Color.BLACK)
@@ -73,24 +78,121 @@ def gradients() :
         fb.render_to_display(np,0)
         sleep_ms(2500)
 
+#rainbow()
 
-#gradients()
-#shifts()
+rtc = ds3231.ds3231(ds3231.I2C_PORT,ds3231.I2C_SCL,ds3231.I2C_SDA)
+def clock(i):
+    fb.fill(Color.BLACK)
+    h,mi,s,d,m,y = rtc.read_time_()
+    s = "%02x:%02x" %(h,mi)
+    fb.print8(s,16 - i%40,1, DARK_GREY)
+    fb.render_to_display(np,0)
+    
+def binaryClock(iterations):
+    binaryClock = BinaryClock(fb)    
+    for i in range(0,iterations,1):
+        h,mi,s,d,m,y = rtc.read_time_()
+        fb.fill(Color.BLACK)
+        binaryClock.showSeconds(s)
+        binaryClock.showMinutes(mi)
+        binaryClock.showHours(h)
+        fb.render_to_display(np,0)
+        sleep_ms(1000)
+
+def snowflaks(fb, rot, iterations, p):
+    for i in range(0,iterations):
+      fb.shift("down")
+      for x in range(10):          
+          if (random() < (p/100)/10) :
+              fb.set_pixel( x ,0, DARK_GREY)
+      fb90.render_to_display(np, rotation=rot)
+      sleep_ms(250)
+
+# Define PacMan shape with binary values (Yellow = 1, Black = 0)
+pacman_open = [
+    [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [1, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+]
+
+pacman_closed = [
+    [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [1, 1, 1, 1, 0, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    [0, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+]
+
+
+def play_pacman(framebuffer,display):
+    for offset_x in range(-10,26):
+        if (offset_x % 2 == 1):
+            pacman = pacman_closed
+        else:
+            pacman = pacman_open
+        fb.clear()
+        for y in range(10):
+            for x in range(10):
+                if pacman[y][x] > 0:
+                    framebuffer.set_pixel(offset_x +x, y, Color(0x0F, 0x0F, 0))  # Yellow for PacMan
+                else:
+                    framebuffer.set_pixel(offset_x +x, y, Color(0, 0, 0))  # Black for background
+    
+        framebuffer.render_to_display(display,0)
+        sleep_ms(500)
+    
+gradients()
+shifts()
+        
+binaryClock(120) # 120 sek
+
+for i in range(0,400,1):
+    clock(i)
+    sleep_ms(250)
+    
 marry_xmas()
 rainbow()
+
+fb.fill(Color.BLACK)
+play_pacman(fb,np)
+
+fire.run_fire(200, framebuffer=fb, display=np)
+
+snake.play_snake(framebuffer=fb, display=np)
 
 fb.fill(Color.BLACK)
 fb.set_pixel(1,1, Color.WHITE)
 fb.render_to_display(display=np, rotation=180)
 sleep_ms(10)
 
-fb90 = FrameBuffer.FrameBuffer(width=10, height=16, bgcolor=Color.RED)
-fb90.set_pixel(1,1, Color.WHITE)
+fb90 = FrameBuffer.FrameBuffer(width=10, height=16, bgcolor=Color.BLACK)
+fb90.set_pixel(1,1, Color.DARK_GREY)
 fb90.render_to_display(display=np, rotation=270)
+
+snowflaks(fb=fb90,rot=90,iterations=250, p=100)
+
+for i in range(0,60*4,1):
+    fb90.fill(Color.BLACK)
+    h,mi,s,d,m,y = rtc.read_time_()
+    s = "%02x:%02x" %(h,mi)
+    fb90.print8(s,16 - i%40,1, DARK_GREY)
+    fb90.render_to_display(np, rotation=90)
+    sleep_ms(250)
 sleep_ms(10)
 
 fb.fill(Color.BLACK)
 fb.render_to_display(display=np, rotation=0)
-
 
 

@@ -61,6 +61,17 @@ class ds3231(object):
         print(s)
         #print("20%x/%02x/%02x %02x:%02x:%02x %s" %(t[6],t[5],t[4],t[2],t[1],t[0],self.w[t[3]-1]))
 
+    def read_time_(self):
+        t = self.bus.readfrom_mem(int(self.address),int(self.start_reg),7)
+        s = t[0]&0x7F  #second
+        mi = t[1]&0x7F  #minute
+        h = t[2]&0x3F  #hour
+        w = t[3]&0x07  #week
+        d = t[4]&0x3F  #day
+        m = t[5]&0x1F  #month
+        y = t[6]&0x7F  #year
+        return h,mi,s,d,m,y
+        
     def set_alarm_time(self,alarm_time):
         #    init the alarm pin
         self.alarm_pin = Pin(ALARM_PIN,Pin.IN,Pin.PULL_UP)
@@ -80,7 +91,11 @@ class ds3231(object):
 if __name__ == '__main__':
     rtc = ds3231(I2C_PORT,I2C_SCL,I2C_SDA)
     #rtc.set_time('12:03:15,Thursday,2024-12-05')
-    rtc.read_time()
+    #rtc.read_time()
+    
+    h,mi,s,d,m,y = rtc.read_time_()
+    s = "%02x:%02x:%02x %02x.%02x.%02x" %(h,mi,s,d,m,y)
+    print(s)
 
     
     

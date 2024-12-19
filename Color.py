@@ -58,4 +58,4 @@ Color.BLACK = Color(0, 0, 0)
 Color.RED = Color(0, 255, 0)
 Color.GREEN = Color(255, 0, 0)
 Color.BLUE = Color(0, 0, 255)
-
+Color.DARK_GREY = Color(0x01, 0x01, 0x01)
